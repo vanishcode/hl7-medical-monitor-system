@@ -15,9 +15,10 @@ channel.queue_delete(queue='server_recv')
 channel.queue_declare(queue='server_recv')  # 把消费者和queue绑定起来，生产者和queue的也是hello
 
 
-def callback(ch, method, properties, body):  # 回调函数get消息体
+def callback(self, ch, method, properties, body):  # 回调函数get消息体
     print(" [x] Received %r" % body)
-    # ---------------
+    # ---------------send-------------
+    channel.queue_delete(queue='server_send')
     channel.queue_declare(queue='server_send')  # 把消息队列的名字为hello
 
     channel.basic_publish(
