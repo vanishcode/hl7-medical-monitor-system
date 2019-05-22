@@ -6,6 +6,7 @@
 import pika
 import wx
 import doctor
+import patient
 
 
 class LoginFrame(wx.Frame):
@@ -94,7 +95,9 @@ class LoginFrame(wx.Frame):
                     doctor.DoctorFrame(
                         None, title='医生 - 搜索个人信息', user=userdata)
                 else:
-                    pass
+                    self.Destroy()
+                    patient.PatientFrame(
+                        None, title='患者 - 个人信息', user=userdata)
 
             else:
                 wx.MessageBox('用户名或密码错误！')
