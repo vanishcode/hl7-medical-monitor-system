@@ -41,14 +41,14 @@ def deletedata(unumber):
     pass
 
 
-def getemperature(self, unumber, date):
+def getemperature(self, unumber, date, graphtype):
     db_file = os.path.join(os.path.dirname(__file__), '../data/data.db')
 
     conn = sqlite3.connect(db_file)
     cursor = conn.cursor()
 
     result = cursor.execute(
-        r"select * from temperature where id='" + unumber + "' and date='" + date + "'").fetchall()
+        r"select * from " + graphtype + " where id='" + unumber + "' and date='" + date + "'").fetchall()
     res = None
     if (result and len(result) > 0):
         res = result[0]
