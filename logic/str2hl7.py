@@ -21,6 +21,6 @@ def toHL7(self, idnum, doctor, name, gender, yearold, phone, home, job, allergy,
 # 写入文件
 
 
-def toHL7file(patient):
+def toHL7file(self, patient):
     with open('patient.txt', 'w', encoding='utf-8') as f:
         f.write(patient)

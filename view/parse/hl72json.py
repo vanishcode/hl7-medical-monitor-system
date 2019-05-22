@@ -129,12 +129,12 @@ def get_hl7_segments(filename):
     return segments
 
 
-def hl72json(hl7_filename):
+def hl72json(self, hl7_filename):
     segments = get_hl7_segments(hl7_filename)
     json = hl7_to_json(segments)
     return cleanup_json(json)
 
 
-# test
-jsonobj = hl72json(hl7_filename='demo.txt')
-print(jsonobj)
+# # test
+# jsonobj = hl72json(hl7_filename='demo.txt')
+# print(jsonobj)

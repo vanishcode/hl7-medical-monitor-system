@@ -2,6 +2,7 @@
 
 import os
 import sqlite3
+from logic import str2hl7
 
 
 def getdata(self, unumber):
@@ -20,7 +21,12 @@ def getdata(self, unumber):
     cursor.close()
     conn.commit()
     conn.close()
-    return res
+    # sqlite
+    # id | doctor | name | gender | yearold | phone | home | job | allergy | family_medical_history | personal_medical_history | check_record
+    # func
+    # idnum, doctor, name, gender, yearold, phone, home, job, allergy, family_medical_history, personal_medical_history, check_record
+    return str2hl7.toHL7(self, res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], res[9], res[10], res[11])
+    # return res
 
 
 def insertdata():

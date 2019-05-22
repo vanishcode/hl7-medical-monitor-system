@@ -12,7 +12,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.figure import Figure
 import os
 import pika
-
+from view.parse import hl72json
 # 保存全局状态
 userdata = {}
 
