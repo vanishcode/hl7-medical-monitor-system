@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+json传输
+"""
 import sys
 import re
 
@@ -125,8 +129,12 @@ def get_hl7_segments(filename):
     return segments
 
 
-if __name__ == "__main__":
-    hl7_filename = 'demo.txt'
+def hl72json(hl7_filename):
     segments = get_hl7_segments(hl7_filename)
     json = hl7_to_json(segments)
-    print(cleanup_json(json))
+    return cleanup_json(json)
+
+
+# test
+jsonobj = hl72json(hl7_filename='demo.txt')
+print(jsonobj)

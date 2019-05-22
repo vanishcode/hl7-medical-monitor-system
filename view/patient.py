@@ -11,6 +11,7 @@ import numpy
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.figure import Figure
 import os
+import pika
 
 # 保存全局状态，基本信息，图表信息，不再继续请求
 userdata = {}
@@ -24,7 +25,7 @@ class PatientFrame(wx.Frame):
         global userdata
         userdata = user
         # 用户 全局状态
-        print(userdata)
+        # print(userdata)
         self.InitUI()
         self.Centre()
 
@@ -256,6 +257,16 @@ class PatientFrame(wx.Frame):
 
         panel.SetSizerAndFit(vbox)
         # self.Centre()
+       
+        global res
+        res = '-1'
+        cs = ClientSend('getdata', 'unumber=p1' )  # userdata['unumber']
+        del cs
+        cv = ClientRecv()
+        del cv
+        if res != '-1':
+            wx.MessageBox(res)
+        # !注意顺序！
         self.Show()
         self.SetTitle("患者 - 搜索个人信息")
 
@@ -362,6 +373,52 @@ class PatientFrame(wx.Frame):
         wx.MessageBox("已退出登录！")
         self.Close()
 
+
+class ClientSend:
+    def __init__(self, action, data):
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host='localhost'))  # 创建一个连接
+        channel = connection.channel()  # 创建通道
+
+        # 一次请求
+        # 请求都为字符串（流），根据字符不同进行不同任务！=_=
+        channel.queue_declare(queue='server_recv')  # 把消息队列的名字为hello
+
+        channel.basic_publish(
+            exchange='', routing_key='server_recv',
+
+            # !body为请求内容
+
+            body='action=' + action + '&' + data)  # 设置routing_key（消息队列的名称）和body（发送的内容）
+
+        connection.close()  # 关闭连接
+
+
+class ClientRecv:
+    def __init__(self):
+
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host='localhost'))  # 创建一个连接
+        channel = connection.channel()  # 建立通道
+
+        channel.queue_declare(
+            queue='server_send')  # 把消费者和queue绑定起来，生产者和queue的也是hello
+
+        def callback(ch, method, properties, body):  # 回调函数get消息体
+            global res  # 赋值给全局变量
+
+            # body为服务器的响应
+
+            res = self.decode_char(body)
+            connection.close()  # 关闭连接
+
+        channel.basic_consume('server_send', callback)
+
+        channel.start_consuming()
+
+    def decode_char(self, *args):
+        response = args[0]
+        return response.decode('utf8')
 
 def main():
     app = wx.App()

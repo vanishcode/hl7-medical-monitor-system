@@ -8,6 +8,7 @@ import pika
 import re
 import sys
 from logic import login
+from logic import patient
 from urllib import parse
 
 
@@ -31,8 +32,10 @@ class Server:
             res = ''
             if action == 'login':
                 res = self.login(message)
-            else:
-                pass
+
+            elif action == 'getdata':
+                res = self.getdata(message)
+
             self.sendres(res)
 
         self.channel.basic_consume('server_recv', callback)
@@ -42,6 +45,10 @@ class Server:
     def login(self, message):
         return login.login(
             self, message['uname'][0], message['unumber'][0], message['uid'][0])
+
+    def getdata(self, message):
+        # body里有`&`可能影响解析
+        return patient.getdata(self, message['unumber'][0])
 
     def sendres(self, res):
         self.channel.queue_delete(queue='server_send')
