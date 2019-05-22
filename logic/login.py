@@ -1,30 +1,24 @@
 # -*- coding: utf-8 -*-
 
-import os, sqlite3
+import os
+import sqlite3
 
-db_file = os.path.join(os.path.dirname(__file__), '../data/data.db')
-if os.path.isfile(db_file):
-    os.remove(db_file)
 
-# 初始数据:
-conn = sqlite3.connect(db_file)
-cursor = conn.cursor()
+def login(self, uname, unumber, uid):
+    # print(uname.decode('utf8'), unumber, uid)
+    db_file = os.path.join(os.path.dirname(__file__), '../data/data.db')
 
-cursor.execute(
-    'create table user(id varchar(20) primary key, name varchar(20), score int)'
-)
-cursor.execute(r"insert into user values ('A-001', 'Adam', 95)")
-cursor.execute(r"insert into user values ('A-002', 'Bob', 95)")
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
 
-cursor.execute(r"delete from user where name='Bob'")
+    result = cursor.execute(r"select * from " + uid +
+                            " where id='" + unumber + "' and name='" + uname + "'").fetchall()
+    resnum = -1
+    if (result and len(result) > 0):
+        # print(result[0][0], result[0][1])
+        resnum = 0
 
-cursor.execute(r"update user set name='wjh' where score=95")
-
-result = cursor.execute(r'select * from user where score=95').fetchall()
-
-for student in result:
-    print(student)
-
-cursor.close()
-conn.commit()
-conn.close()
+    cursor.close()
+    conn.commit()
+    conn.close()
+    return resnum

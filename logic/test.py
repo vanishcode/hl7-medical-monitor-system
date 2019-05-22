@@ -11,8 +11,7 @@ conn = sqlite3.connect(db_file)
 cursor = conn.cursor()
 
 cursor.execute(
-    'create table user(id varchar(20) primary key, name varchar(20), score int)'
-)
+    'create table doctor(id varchar(20) primary key, name varchar(20))')
 cursor.execute(r"insert into user values ('A-001', 'Adam', 95)")
 cursor.execute(r"insert into user values ('A-002', 'Bob', 95)")
 

@@ -10,6 +10,7 @@ import wx.lib.scrolledpanel as scrolled
 import numpy
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.figure import Figure
+import os
 
 toolist = ['search', 'all', 'add', 'delete',
            'temperature', 'pulse', 'heart', 'alarm']
@@ -20,16 +21,19 @@ players = [('Tendulkar', '15000', '100'), ('Dravid', '14000', '1'),
            ('Ganguly', '8000', '50')]
 
 
-# 个人信息，患者信息（保存状态）
+# 保存全局状态
 userdata = {}
 
 
 class DoctorFrame(wx.Frame):
 
-    def __init__(self, parent, title):
+    def __init__(self, parent, title, user):
         super(DoctorFrame, self).__init__(
             parent, title=title, size=(800, 400))
-
+        global userdata
+        userdata = user
+        # 用户 全局状态
+        print(userdata)
         self.InitUI()
         self.Centre()
 
@@ -56,8 +60,7 @@ class DoctorFrame(wx.Frame):
         # 查找人员信息
         # ----------
 
-        SearchTool = toolbar.AddTool(1, 'Search', wx.Bitmap(
-            'img/search.png'), shortHelp="查找人员信息")
+        SearchTool = toolbar.AddTool(1, 'Search', wx.Bitmap(os.path.join(os.path.dirname(__file__), 'img/search.png')), shortHelp="查找人员信息")
 
         self.Bind(wx.EVT_TOOL, self.OnSelectTool, SearchTool)
 
@@ -66,7 +69,7 @@ class DoctorFrame(wx.Frame):
         # --------------
 
         AllTool = toolbar.AddTool(2, 'All People', wx.Bitmap(
-            'img/all.png'), shortHelp="所有人员信息")
+            os.path.join(os.path.dirname(__file__), 'img/all.png')), shortHelp="所有人员信息")
 
         self.Bind(wx.EVT_TOOL, self.OnSelectTool, AllTool)
 
@@ -75,7 +78,7 @@ class DoctorFrame(wx.Frame):
         # ----------
 
         AddTool = toolbar.AddTool(3, 'Add', wx.Bitmap(
-            'img/add.png'), shortHelp="添加人员信息")
+            os.path.join(os.path.dirname(__file__), 'img/add.png')), shortHelp="添加人员信息")
 
         self.Bind(wx.EVT_TOOL, self.OnSelectTool, AddTool)
 
@@ -92,7 +95,8 @@ class DoctorFrame(wx.Frame):
         # ----------
 
         TemperatureTool = toolbar.AddTool(
-            5, 'Temperature', wx.Bitmap('img/temperature.png'), shortHelp="体温信息")
+            5, 'Temperature', wx.Bitmap(os.path.join(os.path.dirname(
+                __file__), 'img/temperature.png')), shortHelp="体温信息")
 
         self.Bind(wx.EVT_TOOL, self.OnSelectTool, TemperatureTool)
 
@@ -101,7 +105,7 @@ class DoctorFrame(wx.Frame):
         # ----------
 
         PulseTool = toolbar.AddTool(6, 'Pulse', wx.Bitmap(
-            'img/pulse.png'), shortHelp="脉搏信息")
+            os.path.join(os.path.dirname(__file__), 'img/pulse.png')), shortHelp="脉搏信息")
 
         self.Bind(wx.EVT_TOOL, self.OnSelectTool, PulseTool)
 
@@ -110,7 +114,7 @@ class DoctorFrame(wx.Frame):
         # ----------
 
         HeartTool = toolbar.AddTool(7, 'Heart', wx.Bitmap(
-            'img/heart.png'), shortHelp="心电信息")
+            os.path.join(os.path.dirname(__file__), 'img/heart.png')), shortHelp="心电信息")
 
         self.Bind(wx.EVT_TOOL, self.OnSelectTool, HeartTool)
 
@@ -128,7 +132,8 @@ class DoctorFrame(wx.Frame):
         # -------
 
         QuitTool = toolbar.AddTool(
-            wx.ID_ANY, 'Quit', wx.Bitmap('img/quit.png'), shortHelp="退出系统")
+            wx.ID_ANY, 'Quit', wx.Bitmap(os.path.join(
+                os.path.dirname(__file__), 'img/quit.png')), shortHelp="退出系统")
 
         self.Bind(wx.EVT_TOOL, self.OnQuit, QuitTool)
 
@@ -317,6 +322,9 @@ class DoctorFrame(wx.Frame):
 
         grid.CreateGrid(15, 8)
 
+        for i in range(15):
+            grid.SetReadOnly(i, 0, True)
+
         # grid.SetRowSize(0, 00)
         grid.SetColSize(0, 100)
         grid.SetColSize(5, 100)
@@ -332,8 +340,8 @@ class DoctorFrame(wx.Frame):
         grid.SetColLabelValue(6, '过敏史')
         grid.SetColLabelValue(7, '家族病史')
 
+        # !病患数据填充数组，请求所有数据
 
-        # 病患数据填充数组（抽离？
         data = [['0908721','老毕','男','45','混子','17864534243','无','神经病']]
         for i in range(1):
             for j in range(8):
@@ -383,7 +391,7 @@ class DoctorFrame(wx.Frame):
     # 创建 添加人员 页面
     def CreateAddPanel(self):
 
-       # 只有一个panel，动态删除添加（效率较低
+        # 只有一个panel，动态删除添加（效率较低
         self.panel.Destroy()
         self.panel = panel = wx.Panel(self, -1)
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -434,7 +442,7 @@ class DoctorFrame(wx.Frame):
         sizer.Add(MedicalHistoryTextCtrl, pos=(2, 5),
                   span=(1, 3), flag=wx.ALL | wx.EXPAND, border=5)
 
-   
+
 
         # ---------------------------第三行-------------------------------
         MedicalHistoryLabel = wx.StaticText(panel, label="联系方式:")
@@ -496,7 +504,7 @@ class DoctorFrame(wx.Frame):
                   span=(1, 7), flag=wx.ALL | wx.EXPAND, border=5)
 
         # --------------------------------------------
-        
+
         vbox.Add(sizer, 0, wx.ALL | wx.CENTER, 5)
         vbox.Add(nmSizer, 0, wx.ALL | wx.EXPAND | wx.CENTER)
         panel.SetSizerAndFit(vbox)
@@ -524,14 +532,46 @@ class DoctorFrame(wx.Frame):
         DayChoiceBox.SetSelection(0)
 
         NumberLabel = wx.StaticText(panel,  wx.ID_ANY, pos=(682, 80), label="病历号:")
-       
+
         self.NumberTextCtrl = NumberTextCtrl = wx.TextCtrl(
             panel, wx.ID_ANY, pos=(682, 100),)
 
         SubmitBtn = wx.Button(panel, label="确定",pos=(682,300))
+        SubmitBtn.Bind(
+            wx.EVT_BUTTON, lambda event: self.CallRenderGraph(
+                event, [30, 36.5, 37.5, 38, 37, 37.5, 37, 37.5, 37.5, 37.5]))
+        # 临时数据，点击重新渲染=
+        self.ChangeData([36, 36.5, 37.5, 38, 37, 37.5, 37, 37.5, 37.5, 37.5])
+        # sum = 0
+        # for s in scores:
+        #     sum += s
+        # average = sum / len(scores)
 
-        # 临时数据，点击重新渲染
-        scores = [36, 36.5, 37.5, 38, 37, 37.5, 37, 37.5, 37.5, 37.5]
+        # t_score = numpy.arange(1, len(scores) + 1, 1)
+        # s_score = numpy.array(scores)
+
+        # self.figure_score = Figure()
+        # self.figure_score.set_figheight(3.8)
+        # self.figure_score.set_figwidth(6.8)
+        # self.axes_score = self.figure_score.add_subplot(111)
+
+        # self.axes_score.plot(t_score, s_score, 'ro', t_score, s_score, 'k')
+        # self.axes_score.axhline(y=average, color='r')
+        # self.axes_score.set_title(u'Temperature')
+        # self.axes_score.grid(True)
+        # self.axes_score.set_xlabel('time')
+        # self.axes_score.set_ylabel('temperature')
+        # FigureCanvas(self.panel, -1, self.figure_score)
+        # self.panel.Fit()
+        self.SetTitle("医生 - 查看患者体温信息")
+
+        # RegisterBtn.Bind(wx.EVT_BUTTON, self.OnRegister)
+    def CallRenderGraph(self,e,data):
+        self.ChangeData(data)
+
+    def ChangeData(self,data):
+        # !请求数据
+        scores = data
         sum = 0
         for s in scores:
             sum += s
@@ -549,14 +589,10 @@ class DoctorFrame(wx.Frame):
         self.axes_score.axhline(y=average, color='r')
         self.axes_score.set_title(u'Temperature')
         self.axes_score.grid(True)
-        self.axes_score.set_xlabel('time')
+        self.axes_score.set_xlabel('t')
         self.axes_score.set_ylabel('temperature')
         FigureCanvas(self.panel, -1, self.figure_score)
         self.panel.Fit()
-        self.SetTitle("医生 - 查看患者体温信息")
-
-        # RegisterBtn.Bind(wx.EVT_BUTTON, self.OnRegister)
-
 
     # 创建 脉搏 页面
     def CreatePulsePanel(self):
@@ -606,7 +642,7 @@ class DoctorFrame(wx.Frame):
 
         NoteLabel = wx.StaticText(self.panel, label="备注信息：")
         NoteTextCtrl = wx.TextCtrl(panel, size=(300, 70), style=wx.TE_MULTILINE)
-        
+
         SaveBtn = wx.Button(panel, label="保存")
         # SaveBtn.Bind(wx.EVT_BUTTON, self.OnRegister)
 
@@ -637,7 +673,7 @@ class DoctorFrame(wx.Frame):
 
 def main():
     app = wx.App()
-    DoctorFrame(None, title='医生 - 搜索个人信息')
+    DoctorFrame(None, title='医生 - 搜索个人信息',user='')
     app.MainLoop()
 
 

@@ -1,6 +1,8 @@
 import sys
 import re
 
+# json 语义更好一些
+
 INDENT = '  '
 KEY_FIELD = '^~\&'
 
@@ -38,7 +40,8 @@ def component_parts_to_json(component_name, component_parts, indent_level):
     json = '\n' + indent + '{\n'
 
     for index, part in enumerate(component_parts):
-        if len(part) == 0: continue
+        if len(part) == 0:
+            continue
 
         part_name = component_name + '.' + str(index + 1)
         json = json + build_json_property(part_name, part, indent_level + 1)
@@ -52,7 +55,8 @@ def field_components_to_json(field_name, field_components, indent_level):
     json = '\n' + indent + '{\n'
 
     for index, component in enumerate(field_components):
-        if len(component.replace('~', '')) == 0: continue
+        if len(component.replace('~', '')) == 0:
+            continue
 
         component_name = field_name + '.' + str(index + 1)
 
@@ -74,8 +78,10 @@ def segment_fields_to_json(segment_name, segment_fields, indent_level):
     indent = INDENT * indent_level
     json = '\n' + indent + '{\n'
     for index, field in enumerate(segment_fields):
-        if len(field.replace('^', '')) == 0: continue
-        if field == KEY_FIELD: continue
+        if len(field.replace('^', '')) == 0:
+            continue
+        if field == KEY_FIELD:
+            continue
 
         field_name = segment_name + '.' + str(index + 1)
 
