@@ -12,16 +12,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.figure import Figure
 import os
 
-toolist = ['search', 'all', 'add', 'delete',
-           'temperature', 'pulse', 'heart', 'alarm']
-
-
-players = [('Tendulkar', '15000', '100'), ('Dravid', '14000', '1'),
-           ('Kumble', '1000', '700'), ('KapilDev', '5000', '400'),
-           ('Ganguly', '8000', '50')]
-
-
-# 保存全局状态
+# 保存全局状态，基本信息，图表信息，不再继续请求
 userdata = {}
 
 
@@ -280,12 +271,19 @@ class PatientFrame(wx.Frame):
             panel, wx.ID_ANY, pos=(682, 150), choices=YearChoices)
         YearChoiceBox.SetSelection(0)
 
-        MonthChoices = [u"4月", u"5月"]
+        MonthChoices = [u"1月", u"2月", u"3月", u"4月", u"5月", u"6月",
+         u"7月", u"8月",u"9月",u"10月",u"11月",u"12月"]
         MonthChoiceBox = wx.Choice(
             panel, wx.ID_ANY, pos=(682, 200), choices=MonthChoices)
         MonthChoiceBox.SetSelection(0)
 
-        DayChoices = [u"18日", u"19日", u"20日"]
+        DayChoices = [
+            u"1日", u"2日", u"3日", u"4日",u"5日", 
+            u"6日", u"7日", u"8日", u"9日", u"10日", 
+            u"11日", u"12日",u"13日", u"14日", u"15日",
+            u"16日", u"17日", u"18日", u"19日",u"20日", 
+            u"21日", u"22日", u"23日", u"24日", u"25日", 
+            u"26日", u"27日", u"28日", u"29日", u"30日", u"31日"]
         DayChoiceBox = wx.Choice(
             panel, wx.ID_ANY, pos=(682, 250), choices=DayChoices)
         DayChoiceBox.SetSelection(0)
