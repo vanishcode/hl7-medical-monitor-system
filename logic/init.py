@@ -49,12 +49,17 @@ def InitDB():
         clock0 int, clock2 int, clock4 int, clock6 int, clock8 int, 
         clock10 int, clock12 int, clock14 int, clock16 int, 
         clock18 int, clock20 int, clock22 int)''')
+    cursor.execute(
+        r"insert into pulse values ('p1', 'd1', '2019-05-20','70','69','72','71','69','75','76','73','71','70','70','69')")
     # heart
     cursor.execute(
         '''create table heart(id varchar(10) primary key, doctor varchar(10), date varchar(10), 
         clock0 int, clock2 int, clock4 int, clock6 int, clock8 int,
          clock10 int, clock12 int, clock14 int, clock16 int, 
          clock18 int, clock20 int, clock22 int)''')
+    cursor.execute(
+        r"insert into heart values ('p1', 'd1', '2019-05-20','70','69','72','71','69','75','76','73','71','70','70','69')")
+
     cursor.close()
     conn.commit()
     conn.close()
