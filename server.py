@@ -35,7 +35,8 @@ class Server:
 
             elif action == 'getdata':
                 res = self.getdata(message)
-
+            elif action == 'temperature':
+                res = self.getemperature(message)
             self.sendres(res)
 
         self.channel.basic_consume('server_recv', callback)
@@ -49,6 +50,9 @@ class Server:
     def getdata(self, message):
         # body里有`&`可能影响解析
         return patient.getdata(self, message['unumber'][0])
+
+    def getemperature(self, message):
+        return patient.getemperature(self, message['unumber'][0], message['date'][0])
 
     def sendres(self, res):
         self.channel.queue_delete(queue='server_send')

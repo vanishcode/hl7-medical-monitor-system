@@ -39,4 +39,22 @@ def updatedata():
 
 def deletedata(unumber):
     pass
-# getdata(unumber='p1')
+
+
+def getemperature(self, unumber, date):
+    db_file = os.path.join(os.path.dirname(__file__), '../data/data.db')
+
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+
+    result = cursor.execute(
+        r"select * from temperature where id='" + unumber + "' and date='" + date + "'").fetchall()
+    res = None
+    if (result and len(result) > 0):
+        res = result[0]
+
+    cursor.close()
+    conn.commit()
+    conn.close()
+
+    return res
