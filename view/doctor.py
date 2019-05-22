@@ -201,7 +201,7 @@ class DoctorFrame(wx.Frame):
         nmbox.Add(nm3, 0, wx.ALL | wx.CENTER, 5)
 
         LoginBtn = wx.Button(panel, label="查找")
-        LoginBtn.Bind(wx.EVT_BUTTON, self.OnLogin)
+        # LoginBtn.Bind(wx.EVT_BUTTON, self.OnLogin)
         nmbox.Add(LoginBtn, 0, wx.ALL | wx.CENTER, 5)
 
         nmSizer.Add(nmbox, 0, wx.ALL | wx.CENTER, 5)
@@ -403,12 +403,12 @@ class DoctorFrame(wx.Frame):
 
 
         LoginBtn = wx.Button(panel, label="添加")
-        LoginBtn.Bind(wx.EVT_BUTTON, self.OnLogin)
+        # LoginBtn.Bind(wx.EVT_BUTTON, self.OnLogin)
         nmbox.Add(LoginBtn, 0, wx.ALL | wx.EXPAND | wx.CENTER, 5)
 
 
         ClearBtn = wx.Button(panel, label="清空")
-        ClearBtn.Bind(wx.EVT_BUTTON, self.OnLogin)
+        # ClearBtn.Bind(wx.EVT_BUTTON, self.OnLogin)
         nmbox.Add(ClearBtn, 0, wx.ALL | wx.CENTER, 5)
 
         nmSizer.Add(nmbox, 0, wx.ALL | wx.CENTER, 5)
@@ -523,11 +523,19 @@ class DoctorFrame(wx.Frame):
         YearChoiceBox = wx.Choice(panel, wx.ID_ANY, pos=(682, 150), choices=YearChoices)
         YearChoiceBox.SetSelection(0)
 
-        MonthChoices = [u"4月", u"5月"]
-        MonthChoiceBox = wx.Choice(panel, wx.ID_ANY, pos=(682, 200), choices=MonthChoices)
+        MonthChoices = [u"1月", u"2月", u"3月", u"4月", u"5月", u"6月",
+                        u"7月", u"8月", u"9月", u"10月", u"11月", u"12月"]
+        MonthChoiceBox = wx.Choice(
+            panel, wx.ID_ANY, pos=(682, 200), choices=MonthChoices)
         MonthChoiceBox.SetSelection(0)
 
-        DayChoices = [u"18日", u"19日", u"20日"]
+        DayChoices = [
+            u"1日", u"2日", u"3日", u"4日", u"5日",
+            u"6日", u"7日", u"8日", u"9日", u"10日",
+            u"11日", u"12日", u"13日", u"14日", u"15日",
+            u"16日", u"17日", u"18日", u"19日", u"20日",
+            u"21日", u"22日", u"23日", u"24日", u"25日",
+            u"26日", u"27日", u"28日", u"29日", u"30日", u"31日"]
         DayChoiceBox = wx.Choice(panel, wx.ID_ANY, pos=(682, 250), choices=DayChoices)
         DayChoiceBox.SetSelection(0)
 
@@ -661,9 +669,6 @@ class DoctorFrame(wx.Frame):
         panel.SetSizerAndFit(sizer)
         self.SetTitle('医生 — 警报信息更改')
         self.Show()
-
-    def OnLogin(self):
-        pass
 
     # 退出程序
     def OnQuit(self, e):
