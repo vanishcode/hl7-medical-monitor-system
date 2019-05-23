@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 json传输
+2019.5.20
 """
 import sys
 import re
-
-# json 语义更好一些
 
 INDENT = '  '
 KEY_FIELD = '^~\&'
