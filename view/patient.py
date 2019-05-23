@@ -339,9 +339,9 @@ class PatientFrame(wx.Frame):
     def trim(self, origin):
         return origin[0][0].replace(' ', '').replace('\"', '').replace(',', '').replace(':', '').replace('}', '').replace('CDA.3', '').replace('ZCS.4', '')
 
-    def toHL7file(self, patient):
-        with open('patient.txt', 'w', encoding='utf-8') as f:
-            f.write(patient)
+    # def toHL7file(self, patient):
+    #     with open('patient.txt', 'w', encoding='utf-8') as f:
+    #         f.write(patient)
 
     # 创建 体温 页面
 
