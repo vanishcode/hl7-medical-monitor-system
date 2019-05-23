@@ -15,30 +15,66 @@ def getdata(self, unumber):
     result = cursor.execute(
         r"select * from patient where id='" + unumber + "'").fetchall()
     res = None
-    if (result and len(result) > 0):
-        res = result[0]
 
     cursor.close()
     conn.commit()
     conn.close()
-    # sqlite
-    # id | doctor | name | gender | yearold | phone | home | job | allergy | family_medical_history | personal_medical_history | check_record
-    # func
-    # idnum, doctor, name, gender, yearold, phone, home, job, allergy, family_medical_history, personal_medical_history, check_record
-    return str2hl7.toHL7(self, res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], res[9], res[10], res[11])
-    # return res
+
+    if (result and len(result) > 0):
+        res = result[0]
+        return str2hl7.toHL7(self, res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], res[9], res[10], res[11])
+    else:
+        return '-1'
 
 
-def insertdata():
-    pass
+def insertdata(self, unumber, data):
+    db_file = os.path.join(os.path.dirname(__file__), '../data/data.db')
+
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+
+    result = cursor.execute(
+        "insert into patient values ('" + data['pnumber'][0] + "','" + unumber + "', '" + data['pname'][0] + "','" + data['gender'][0] + "','" + data['yearold'][0] + "','" + data['phone'][0] + "','" + data['home'][0] + "','" + data['job'][0] + "','" + data['allergy'][0] + "','" + data['family_medical_history'][0] + "','" + data['personal_medical_history'][0] + "','无')")
+
+    cursor.close()
+    conn.commit()
+    conn.close()
+
+    return '0'
+
+# 修改
 
 
-def updatedata():
-    pass
+def updatedata(self, unumber, data):
+    db_file = os.path.join(os.path.dirname(__file__), '../data/data.db')
+
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+
+    cursor.execute(r"update patient set name='wjh' where id='" + unumber + "'")
+
+    cursor.close()
+    conn.commit()
+    conn.close()
+
+    return '0'
 
 
-def deletedata(unumber):
-    pass
+def deletedata(self, unumber):
+    db_file = os.path.join(os.path.dirname(__file__), '../data/data.db')
+
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+    result = cursor.execute(
+        r"delete from patient where id='" + unumber + "'").fetchall()
+    cursor.close()
+    conn.commit()
+    conn.close()
+
+    if len(result) == 0:
+        return '-1'
+    else:
+        return '0'
 
 
 def getemperature(self, unumber, date, graphtype):

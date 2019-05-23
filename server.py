@@ -36,7 +36,22 @@ class Server:
             elif action == 'getdata':
                 res = self.getdata(message)
             elif action == 'temperature':
-                res = self.getemperature(message)
+                res = self.getemperature(message, 'temperature')
+            elif action == 'pulse':
+                res = self.getemperature(message, 'pulse')
+            elif action == 'heart':
+                res = self.getemperature(message, 'heart')
+
+            # 添加
+            elif action == 'add':
+                res = self.add(message)
+
+            elif action == 'update':
+                res = self.update(message)
+
+            elif action == 'delete':
+                res = self.delete(message)
+
             self.sendres(res)
 
         self.channel.basic_consume('server_recv', callback)
@@ -51,8 +66,18 @@ class Server:
         # body里有`&`可能影响解析
         return patient.getdata(self, message['unumber'][0])
 
-    def getemperature(self, message):
-        return patient.getemperature(self, message['unumber'][0], message['date'][0])
+    def getemperature(self, message, graphtype):
+        return patient.getemperature(self, message['unumber'][0], message['date'][0], graphtype)
+    # 增加
+
+    def add(self, message):
+        return patient.insertdata(self, message['unumber'][0], message)
+
+    def update(self, message):
+        return patient.updatedata(self, message['unumber'][0], message)
+
+    def delete(self, message):
+        return patient.deletedata(self, message['unumber'][0])
 
     def sendres(self, res):
         self.channel.queue_delete(queue='server_send')

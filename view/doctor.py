@@ -11,8 +11,11 @@ import numpy
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.figure import Figure
 import os
+import re
+import json
 import pika
 from parse import hl72json
+
 # 保存全局状态
 userdata = {}
 
@@ -159,8 +162,7 @@ class DoctorFrame(wx.Frame):
                 self.CreatePulsePanel()
             elif n == 7:
                 self.CreateHeartPanel()
-            elif n == 8:
-                self.CreateAlarmPanel()
+
 
     # 创建 搜索 页面
     def CreateSearchPanel(self):
@@ -177,37 +179,37 @@ class DoctorFrame(wx.Frame):
         fn = wx.StaticText(panel, -1, "按病历编号查找：")
         nmbox.Add(fn, 0, wx.ALL | wx.CENTER, 5)
 
-        nm1 = wx.TextCtrl(panel, -1, style=wx.ALIGN_LEFT)
+        self.number = nm1 = wx.TextCtrl(panel, -1, style=wx.ALIGN_LEFT)
         nmbox.Add(nm1, 0, wx.ALL | wx.CENTER, 5)
 
         ln = wx.StaticText(panel, -1, "按姓名查找：")
         nmbox.Add(ln, 0, wx.ALL | wx.CENTER, 5)
 
-        nm2 = wx.TextCtrl(panel, -1, style=wx.ALIGN_LEFT)
+        self.name = nm2 = wx.TextCtrl(panel, -1, style=wx.ALIGN_LEFT)
         nmbox.Add(nm2, 0, wx.ALL | wx.CENTER, 5)
 
         ln1 = wx.StaticText(panel, -1, "按联系方式查找：")
         nmbox.Add(ln1, 0, wx.ALL | wx.CENTER, 5)
 
-        nm3 = wx.TextCtrl(panel, -1, style=wx.ALIGN_LEFT)
+        self.phone = nm3 = wx.TextCtrl(panel, -1, style=wx.ALIGN_LEFT)
         nmbox.Add(nm3, 0, wx.ALL | wx.CENTER, 5)
 
-        LoginBtn = wx.Button(panel, label="查找")
-        # LoginBtn.Bind(wx.EVT_BUTTON, self.OnLogin)
-        nmbox.Add(LoginBtn, 0, wx.ALL | wx.CENTER, 5)
+        FindBtn = wx.Button(panel, label="查找")
+        FindBtn.Bind(wx.EVT_BUTTON, self.OnFind)
+        nmbox.Add(FindBtn, 0, wx.ALL | wx.CENTER, 5)
 
         nmSizer.Add(nmbox, 0, wx.ALL | wx.CENTER, 5)
 
         # ------------------------------------------
         sizer = wx.GridBagSizer(10, 30)
 
-        MedicalHistoryLabel = wx.StaticText(panel, label="病历编号:")
-        sizer.Add(MedicalHistoryLabel, pos=(0, 0),
+        MedicalNumberLabel = wx.StaticText(panel, label="病历编号:")
+        sizer.Add(MedicalNumberLabel, pos=(0, 0),
                   flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.MedicalHistoryTextCtrl = MedicalHistoryTextCtrl = wx.TextCtrl(
+        self.MedicalNumberTextCtrl = MedicalNumberTextCtrl = wx.TextCtrl(
             panel)
-        sizer.Add(MedicalHistoryTextCtrl, pos=(0, 1),
+        sizer.Add(MedicalNumberTextCtrl, pos=(0, 1),
                   span=(1, 3), flag=wx.ALL | wx.EXPAND, border=5)
 
         UserNameLabel = wx.StaticText(panel, label="用户名:")
@@ -218,82 +220,84 @@ class DoctorFrame(wx.Frame):
                   span=(1, 3), flag=wx.ALL | wx.EXPAND, border=5)
 
         # ---------------------------第二行-------------------------------
-        MedicalHistoryLabel = wx.StaticText(panel, label="性别:")
-        sizer.Add(MedicalHistoryLabel, pos=(1, 0),
+        GenderLabel = wx.StaticText(panel, label="性别:")
+        sizer.Add(GenderLabel, pos=(1, 0),
                   flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.MedicalHistoryTextCtrl = MedicalHistoryTextCtrl = wx.TextCtrl(
+        self.GenderTextCtrl = GenderTextCtrl = wx.TextCtrl(
             panel)
-        sizer.Add(MedicalHistoryTextCtrl, pos=(1, 1),
+        sizer.Add(GenderTextCtrl, pos=(1, 1),
                   span=(1, 3), flag=wx.ALL | wx.EXPAND, border=5)
 
-        UserNameLabel = wx.StaticText(panel, label="年龄:")
-        sizer.Add(UserNameLabel, pos=(1, 4), flag=wx.ALL | wx.EXPAND, border=5)
+        YearOldLabel = wx.StaticText(panel, label="年龄:")
+        sizer.Add(YearOldLabel, pos=(1, 4), flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.UserNameTextCtrl = UserNameTextCtrl = wx.TextCtrl(panel)
-        sizer.Add(UserNameTextCtrl, pos=(1, 5), span=(1, 3),
+        self.YearOldTextCtrl = YearOldTextCtrl = wx.TextCtrl(panel)
+        sizer.Add(YearOldTextCtrl, pos=(1, 5), span=(1, 3),
                   flag=wx.ALL | wx.EXPAND, border=5)
 
         # ---------------------------第三行-------------------------------
-        MedicalHistoryLabel = wx.StaticText(panel, label="职业:")
-        sizer.Add(MedicalHistoryLabel, pos=(2, 0),
+        JobLabel = wx.StaticText(panel, label="职业:")
+        sizer.Add(JobLabel, pos=(2, 0),
                   flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.MedicalHistoryTextCtrl = MedicalHistoryTextCtrl = wx.TextCtrl(
+        self.JobTextCtrl = JobTextCtrl = wx.TextCtrl(
             panel)
-        sizer.Add(MedicalHistoryTextCtrl, pos=(2, 1),
+        sizer.Add(JobTextCtrl, pos=(2, 1),
                   span=(1, 3), flag=wx.ALL | wx.EXPAND, border=5)
 
-        UserNameLabel = wx.StaticText(panel, label="联系方式:")
-        sizer.Add(UserNameLabel, pos=(2, 4), flag=wx.ALL | wx.EXPAND, border=5)
+        PhoneLabel = wx.StaticText(panel, label="联系方式:")
+        sizer.Add(PhoneLabel, pos=(2, 4), flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.UserNameTextCtrl = UserNameTextCtrl = wx.TextCtrl(panel)
-        sizer.Add(UserNameTextCtrl, pos=(2, 5), span=(1, 3),
+        self.PhoneTextCtrl = PhoneTextCtrl = wx.TextCtrl(panel)
+        sizer.Add(PhoneTextCtrl, pos=(2, 5), span=(1, 3),
                   flag=wx.ALL | wx.EXPAND, border=5)
 
         # ---------------------------第四行-------------------------------
-        MedicalHistoryLabel = wx.StaticText(panel, label="过敏史:")
-        sizer.Add(MedicalHistoryLabel, pos=(3, 0),
+        AllergyLabel = wx.StaticText(panel, label="过敏史:")
+        sizer.Add(AllergyLabel, pos=(3, 0),
                   flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.MedicalHistoryTextCtrl = MedicalHistoryTextCtrl = wx.TextCtrl(
+        self.AllergyTextCtrl = AllergyTextCtrl = wx.TextCtrl(
             panel)
-        sizer.Add(MedicalHistoryTextCtrl, pos=(3, 1),
+        sizer.Add(AllergyTextCtrl, pos=(3, 1),
                   span=(1, 3), flag=wx.ALL | wx.EXPAND, border=5)
 
-        UserNameLabel = wx.StaticText(panel, label="家族病史:")
-        sizer.Add(UserNameLabel, pos=(3, 4), flag=wx.ALL | wx.EXPAND, border=5)
+        FamilyMedicalHistoryLabel = wx.StaticText(panel, label="家族病史:")
+        sizer.Add(FamilyMedicalHistoryLabel, pos=(
+            3, 4), flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.UserNameTextCtrl = UserNameTextCtrl = wx.TextCtrl(panel)
-        sizer.Add(UserNameTextCtrl, pos=(3, 5), span=(1, 3),
+        self.FamilyMedicalHistoryTextCtrl = FamilyMedicalHistoryTextCtrl = wx.TextCtrl(
+            panel)
+        sizer.Add(FamilyMedicalHistoryTextCtrl, pos=(3, 5), span=(1, 3),
                   flag=wx.ALL | wx.EXPAND, border=5)
 
         # ---------------------------第五行-------------------------------
-        MedicalHistoryLabel = wx.StaticText(panel, label="个人病史:")
-        sizer.Add(MedicalHistoryLabel, pos=(4, 0),
+        PersonalMedicalHistoryLabel = wx.StaticText(panel, label="个人病史:")
+        sizer.Add(PersonalMedicalHistoryLabel, pos=(4, 0),
                   flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.MedicalHistoryTextCtrl = MedicalHistoryTextCtrl = wx.TextCtrl(
+        self.PersonalMedicalHistoryTextCtrl = PersonalMedicalHistoryTextCtrl = wx.TextCtrl(
             panel)
-        sizer.Add(MedicalHistoryTextCtrl, pos=(4, 1),
+        sizer.Add(PersonalMedicalHistoryTextCtrl, pos=(4, 1),
                   span=(1, 3), flag=wx.ALL | wx.EXPAND, border=5)
 
-        UserNameLabel = wx.StaticText(panel, label="体检记录:")
-        sizer.Add(UserNameLabel, pos=(4, 4), flag=wx.ALL | wx.EXPAND, border=5)
+        CheckRecordLabel = wx.StaticText(panel, label="体检记录:")
+        sizer.Add(CheckRecordLabel, pos=(4, 4),
+                  flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.UserNameTextCtrl = UserNameTextCtrl = wx.TextCtrl(panel)
-        sizer.Add(UserNameTextCtrl, pos=(4, 5), span=(1, 3),
+        self.CheckRecordTextCtrl = CheckRecordTextCtrl = wx.TextCtrl(panel)
+        sizer.Add(CheckRecordTextCtrl, pos=(4, 5), span=(1, 3),
                   flag=wx.ALL | wx.EXPAND, border=5)
 
         # ---------------------------第6行-------------------------------
-        MedicalHistoryLabel = wx.StaticText(panel, label="家庭住址:")
-        sizer.Add(MedicalHistoryLabel, pos=(5, 0), flag=wx.ALL, border=5)
+        HomeLabel = wx.StaticText(panel, label="家庭住址:")
+        sizer.Add(HomeLabel, pos=(5, 0), flag=wx.ALL, border=5)
 
-        self.MedicalHistoryTextCtrl = MedicalHistoryTextCtrl = wx.TextCtrl(
+        self.HomeTextCtrl = HomeTextCtrl = wx.TextCtrl(
             panel)
-        sizer.Add(MedicalHistoryTextCtrl, pos=(5, 1),
+        sizer.Add(HomeTextCtrl, pos=(5, 1),
                   span=(1, 7), flag=wx.ALL | wx.EXPAND, border=5)
-
         # --------------------------------------------
         vbox.Add(nmSizer, 0, wx.ALL | wx.CENTER, 5)
         vbox.Add(sizer, 0, wx.ALL | wx.CENTER, 5)
@@ -303,6 +307,99 @@ class DoctorFrame(wx.Frame):
         self.Show()
         self.SetTitle("医生 - 搜索个人信息")
 
+    def trim(self, origin):
+        return origin[0][0].replace(' ', '').replace('\"', '').replace(',', '').replace(':', '').replace('}', '').replace('CDA.3', '').replace('ZCS.4', '')
+
+    def toHL7file(self, patient):
+        with open('patient.txt', 'w', encoding='utf-8') as f:
+            f.write(patient)
+
+    def OnFind(self,e):
+        global res
+        res = '-1'
+        cs = ClientSend('getdata', 'unumber=' + self.number.GetValue())
+        del cs
+        cv = ClientRecv()
+        del cv
+        if res != '-1':
+            filejson = hl72json.hl72json(self,'patient.txt')
+            after = filejson.replace('\n','')
+            # 姓名
+            names = re.findall(".*PID.2.6\"(.*)\"(PID.2.8).*", after)
+            name = self.trim(names)
+            # self.nm2.SetValue(name)
+            self.UserNameTextCtrl.SetValue(name)
+            # 编号
+            unumbers = re.findall(".*PID.2.4\"(.*)\"(PID.2.6).*", after)
+            unumber = self.trim(unumbers)
+            # self.nm1.SetValue(unumber)
+            self.MedicalNumberTextCtrl.SetValue(unumber)
+            # 联系方式
+            phones = re.findall(".*PID.2.14\"(.*)\"(PID.2.15).*", after)
+            phone = self.trim(phones)
+            # self.nm3.SetValue(phone)
+            self.PhoneTextCtrl.SetValue(phone)
+            # 地址
+            homes = re.findall(".*PID.2.12\"(.*)\"(PID.2.14).*", after)
+            home = self.trim(homes)
+            self.HomeTextCtrl.SetValue(home)
+            # 性别
+            genders = re.findall(".*PID.2.9\"(.*)\"(PID.2.12).*", after)
+            gender = self.trim(genders)
+            if gender == 'F':
+                self.GenderTextCtrl.SetValue('男')
+            else:
+                self.GenderTextCtrl.SetValue('女')
+            # 年龄
+            yos = re.findall(".*PID.2.8\"(.*)\"(PID.2.9).*", after)
+            yo = self.trim(yos)
+            self.YearOldTextCtrl.SetValue(yo)
+            # 工作
+            jobs = re.findall(".*PID.2.15\"(.+?)\"(CDA.3).*", after)
+            job = self.trim(jobs)
+            self.JobTextCtrl.SetValue(job)
+            # 家族病史
+            familys = re.findall(".*CDA.3.6\"(.*)\"(CDA.3.7).*", after)
+            family = self.trim(familys)
+            self.FamilyMedicalHistoryTextCtrl.SetValue(family)
+            # 过敏史
+            allergys = re.findall(".*CDA.3.4\"(.*)\"(CDA.3.6).*", after)
+            allergy = self.trim(allergys)
+            self.AllergyTextCtrl.SetValue(allergy)
+            # 个人病史
+            personals = re.findall(".*CDA.3.7\"(.*)\"(CDA.3.9).*", after)
+            personal = self.trim(personals)
+            self.PersonalMedicalHistoryTextCtrl.SetValue(personal)
+            # 体检记录
+            checks = re.findall(".*CDA.3.9\"(.+?)\"(ZCS.4).*", after)
+            check = self.trim(checks)
+            self.CheckRecordTextCtrl.SetValue(check)
+        else:
+            wx.MessageBox('查无此人！')
+            # name
+            self.UserNameTextCtrl.SetValue('')
+            # 编号
+            self.MedicalNumberTextCtrl.SetValue('')
+            # 联系方式
+            self.PhoneTextCtrl.SetValue('')
+            # 地址
+            self.HomeTextCtrl.SetValue('')
+            # 性别
+            self.GenderTextCtrl.SetValue('')
+            # 年龄
+            self.YearOldTextCtrl.SetValue('')
+            # 工作
+            self.JobTextCtrl.SetValue('')
+            # 家族病史
+            self.FamilyMedicalHistoryTextCtrl.SetValue('')
+            # 过敏史
+            self.AllergyTextCtrl.SetValue('')
+            # 个人病史
+            self.PersonalMedicalHistoryTextCtrl.SetValue('')
+            # 体检记录
+            self.CheckRecordTextCtrl.SetValue('')
+
+
     # !创建 所有人员列表 页面
     def CreateAllPanel(self):
 
@@ -310,7 +407,7 @@ class DoctorFrame(wx.Frame):
         self.panel = panel = scrolled.ScrolledPanel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        grid = table.Grid(panel, -1)
+        self.grid = grid = table.Grid(panel, -1)
 
         grid.CreateGrid(15, 8)
 
@@ -348,26 +445,27 @@ class DoctorFrame(wx.Frame):
         nmbox = wx.BoxSizer(wx.HORIZONTAL)
 
 
-        upBtn = wx.Button(panel, -1, label="上一页")
+        # upBtn = wx.Button(panel, -1, label="上一页")
         # LoginBtn.Bind(wx.EVT_BUTTON, self.OnLogin)
-        nmbox.Add(upBtn, 0, wx.ALL | wx.EXPAND | wx.CENTER, 5)
+        # nmbox.Add(upBtn, 0, wx.ALL | wx.EXPAND | wx.CENTER, 5)
 
-        downBtn = wx.Button(panel, -1, label="下一页")
+        # downBtn = wx.Button(panel, -1, label="下一页")
         # LoginBtn.Bind(wx.EVT_BUTTON, self.OnLogin)
-        nmbox.Add(downBtn, 0, wx.ALL | wx.EXPAND | wx.CENTER, 5)
+        # nmbox.Add(downBtn, 0, wx.ALL | wx.EXPAND | wx.CENTER, 5)
 
-        submitBtn = wx.Button(panel, -1, label="提交修改")
-        # LoginBtn.Bind(wx.EVT_BUTTON, self.OnLogin)
-        nmbox.Add(submitBtn, 0, wx.ALL | wx.EXPAND | wx.CENTER, 5)
+        ChangeBtn = wx.Button(panel, -1, label="提交修改")
+        ChangeBtn.Bind(wx.EVT_BUTTON, self.OnChange)
+        nmbox.Add(ChangeBtn, 0, wx.ALL | wx.EXPAND | wx.CENTER, 5)
 
-        deleteBtn = wx.Button(panel, -1, label="删除对象")
-        # LoginBtn.Bind(wx.EVT_BUTTON, self.OnLogin)
-        nmbox.Add(deleteBtn, 0, wx.ALL | wx.EXPAND | wx.CENTER, 5)
+        DeleteBtn = wx.Button(panel, -1, label="删除对象")
+        DeleteBtn.Bind(wx.EVT_BUTTON, self.OnDelete)
+        nmbox.Add(DeleteBtn, 0, wx.ALL | wx.EXPAND | wx.CENTER, 5)
 
 
         nmSizer.Add(nmbox, 0, wx.ALL | wx.CENTER, 5)
 
-
+        grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.OnSelectRow)
+        
         vbox.Add(grid, 0, wx.ALL |wx.CENTER)
         vbox.Add(nmSizer, 0, wx.ALL | wx.EXPAND | wx.CENTER)
 
@@ -379,6 +477,29 @@ class DoctorFrame(wx.Frame):
         self.SetTitle("医生 - 查看所有患者信息")
         # self.panel.Fit()
 
+    def OnSelectRow(self,e):
+        global row
+        self.grid.SelectRow(e.GetRow())
+        row = e.GetRow()
+
+    # 删除
+    def OnDelete(self,e):
+        global row
+        global res
+
+        res = '-1'
+        cs = ClientSend('delete', 'unumber=' + self.grid.GetCellValue(row, 0) )
+        del cs
+        cv = ClientRecv()
+        del cv
+        if res != '-1':
+            wx.MessageBox('删除成功！')
+        else:
+            wx.MessageBox('删除失败！')
+
+    # the last 修改
+    def OnChange(self,e):
+        self.grid.SelectRow(e.GetRow())
 
     # 创建 添加人员 页面
     def CreateAddPanel(self):
@@ -394,13 +515,13 @@ class DoctorFrame(wx.Frame):
         nmbox = wx.BoxSizer(wx.HORIZONTAL)
 
 
-        LoginBtn = wx.Button(panel, label="添加")
-        # LoginBtn.Bind(wx.EVT_BUTTON, self.OnLogin)
-        nmbox.Add(LoginBtn, 0, wx.ALL | wx.EXPAND | wx.CENTER, 5)
+        AddBtn = wx.Button(panel, label="添加")
+        AddBtn.Bind(wx.EVT_BUTTON, self.OnAdd)
+        nmbox.Add(AddBtn, 0, wx.ALL | wx.EXPAND | wx.CENTER, 5)
 
 
         ClearBtn = wx.Button(panel, label="清空")
-        # ClearBtn.Bind(wx.EVT_BUTTON, self.OnLogin)
+        ClearBtn.Bind(wx.EVT_BUTTON, self.OnClear)
         nmbox.Add(ClearBtn, 0, wx.ALL | wx.CENTER, 5)
 
         nmSizer.Add(nmbox, 0, wx.ALL | wx.CENTER, 5)
@@ -408,91 +529,82 @@ class DoctorFrame(wx.Frame):
         # ------------------------------------------
         sizer = wx.GridBagSizer(10, 30)
 
-        MedicalHistoryLabel = wx.StaticText(panel, label="病历编号:")
-        sizer.Add(MedicalHistoryLabel, pos=(1, 0),
+        MedicalNumberLabel = wx.StaticText(panel, label="病历编号:")
+        sizer.Add(MedicalNumberLabel, pos=(1, 0),
                   flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.MedicalHistoryTextCtrl = MedicalHistoryTextCtrl = wx.TextCtrl(
+        self.MedicalNumberTextCtrl1 = MedicalNumberTextCtrl1 = wx.TextCtrl(
             panel)
-        sizer.Add(MedicalHistoryTextCtrl, pos=(1, 1),
+        sizer.Add(MedicalNumberTextCtrl1, pos=(1, 1),
                   span=(1, 3), flag=wx.ALL | wx.EXPAND, border=5)
 
         UserNameLabel = wx.StaticText(panel, label="用户名:")
         sizer.Add(UserNameLabel, pos=(2, 0), flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.UserNameTextCtrl = UserNameTextCtrl = wx.TextCtrl(panel)
-        sizer.Add(UserNameTextCtrl, pos=(2, 1),
+        self.UserNameTextCtrl1 = UserNameTextCtrl1 = wx.TextCtrl(panel)
+        sizer.Add(UserNameTextCtrl1, pos=(2, 1),
                   span=(1, 3), flag=wx.ALL | wx.EXPAND, border=5)
 
         # ---------------------------第二行-------------------------------
-        MedicalHistoryLabel = wx.StaticText(panel, label="性别:")
-        sizer.Add(MedicalHistoryLabel, pos=(2, 4),
+        GenderLabel = wx.StaticText(panel, label="性别:")
+        sizer.Add(GenderLabel, pos=(2, 4),
                   flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.MedicalHistoryTextCtrl = MedicalHistoryTextCtrl = wx.TextCtrl(
+        self.GenderTextCtrl1 = GenderTextCtrl1 = wx.TextCtrl(
             panel)
-        sizer.Add(MedicalHistoryTextCtrl, pos=(2, 5),
+        sizer.Add(GenderTextCtrl1, pos=(2, 5),
                   span=(1, 3), flag=wx.ALL | wx.EXPAND, border=5)
-
-
 
         # ---------------------------第三行-------------------------------
-        MedicalHistoryLabel = wx.StaticText(panel, label="联系方式:")
-        sizer.Add(MedicalHistoryLabel, pos=(2, 8),
+        PhoneLabel = wx.StaticText(panel, label="联系方式:")
+        sizer.Add(PhoneLabel, pos=(2, 8),
                   flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.MedicalHistoryTextCtrl = MedicalHistoryTextCtrl = wx.TextCtrl(
+        self.PhoneTextCtrl1 = PhoneTextCtrl1 = wx.TextCtrl(
             panel)
-        sizer.Add(MedicalHistoryTextCtrl, pos=(2, 9),
+        sizer.Add(PhoneTextCtrl1, pos=(2, 9),
                   span=(1, 3), flag=wx.ALL | wx.EXPAND, border=5)
 
-        UserNameLabel = wx.StaticText(panel, label="职业:")
-        sizer.Add(UserNameLabel, pos=(3, 0), flag=wx.ALL | wx.EXPAND, border=5)
+        JobLabel = wx.StaticText(panel, label="职业:")
+        sizer.Add(JobLabel, pos=(3, 0), flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.UserNameTextCtrl = UserNameTextCtrl = wx.TextCtrl(panel)
-        sizer.Add(UserNameTextCtrl, pos=(3, 1), span=(1, 3),
+        self.JobTextCtrl1 = JobTextCtrl1 = wx.TextCtrl(panel)
+        sizer.Add(JobTextCtrl1, pos=(3, 1), span=(1, 3),
                   flag=wx.ALL | wx.EXPAND, border=5)
 
         # ---------------------------第四行-------------------------------
-        MedicalHistoryLabel = wx.StaticText(panel, label="家族病史:")
-        sizer.Add(MedicalHistoryLabel, pos=(5, 0),
+        FamilyMedicalHistoryLabel = wx.StaticText(panel, label="家族病史:")
+        sizer.Add(FamilyMedicalHistoryLabel, pos=(5, 0),
                   flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.MedicalHistoryTextCtrl = MedicalHistoryTextCtrl = wx.TextCtrl(
+        self.FamilyMedicalHistoryTextCtrl1 = FamilyMedicalHistoryTextCtrl1 = wx.TextCtrl(
             panel)
-        sizer.Add(MedicalHistoryTextCtrl, pos=(5, 1),
+        sizer.Add(FamilyMedicalHistoryTextCtrl1, pos=(5, 1),
                   span=(1, 3), flag=wx.ALL | wx.EXPAND, border=5)
 
-        UserNameLabel = wx.StaticText(panel, label="过敏史:")
-        sizer.Add(UserNameLabel, pos=(5, 4), flag=wx.ALL | wx.EXPAND, border=5)
+        AllergyLabel = wx.StaticText(panel, label="过敏史:")
+        sizer.Add(AllergyLabel, pos=(5, 4), flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.UserNameTextCtrl = UserNameTextCtrl = wx.TextCtrl(panel)
-        sizer.Add(UserNameTextCtrl, pos=(5, 5), span=(1, 3),
+        self.AllergyTextCtrl1 = AllergyTextCtrl1 = wx.TextCtrl(panel)
+        sizer.Add(AllergyTextCtrl1, pos=(5, 5), span=(1, 3),
                   flag=wx.ALL | wx.EXPAND, border=5)
 
-        MedicalHistoryLabel = wx.StaticText(panel, label="个人病史:")
-        sizer.Add(MedicalHistoryLabel, pos=(5, 8),
+        PersonalMedicalHistoryLabel = wx.StaticText(panel, label="个人病史:")
+        sizer.Add(PersonalMedicalHistoryLabel, pos=(5, 8),
                   flag=wx.ALL | wx.EXPAND, border=5)
 
-        self.MedicalHistoryTextCtrl = MedicalHistoryTextCtrl = wx.TextCtrl(
+        self.PersonalMedicalHistoryTextCtrl1 = PersonalMedicalHistoryTextCtrl1 = wx.TextCtrl(
             panel)
-        sizer.Add(MedicalHistoryTextCtrl, pos=(5, 9),
+        sizer.Add(PersonalMedicalHistoryTextCtrl1, pos=(5, 9),
                   span=(1, 3), flag=wx.ALL | wx.EXPAND, border=5)
-
-        # UserNameLabel = wx.StaticText(panel, label="体检记录:")
-        # sizer.Add(UserNameLabel, pos=(4, 4), flag=wx.ALL | wx.EXPAND, border=5)
-
-        # self.UserNameTextCtrl = UserNameTextCtrl = wx.TextCtrl(panel)
-        # sizer.Add(UserNameTextCtrl, pos=(4, 5), span=(1, 3),
-        #           flag=wx.ALL | wx.EXPAND, border=5)
 
         # ---------------------------第6行-------------------------------
-        MedicalHistoryLabel = wx.StaticText(panel, label="家庭住址:")
-        sizer.Add(MedicalHistoryLabel, pos=(7, 0), flag=wx.ALL, border=5)
+        HomeLabel = wx.StaticText(panel, label="家庭住址:")
+        sizer.Add(HomeLabel, pos=(7, 0), flag=wx.ALL, border=5)
 
-        self.MedicalHistoryTextCtrl = MedicalHistoryTextCtrl = wx.TextCtrl(
+        self.HomeTextCtrl1 = HomeTextCtrl1 = wx.TextCtrl(
             panel)
-        sizer.Add(MedicalHistoryTextCtrl, pos=(7, 1),
+        sizer.Add(HomeTextCtrl1, pos=(7, 1),
                   span=(1, 7), flag=wx.ALL | wx.EXPAND, border=5)
 
         # --------------------------------------------
@@ -503,6 +615,58 @@ class DoctorFrame(wx.Frame):
         # self.Centre()
         self.Show()
         self.SetTitle("医生 - 添加个人信息")
+
+    def OnAdd(self,e):
+        # # 用户姓名
+        # self.UserNameTextCtrl1.GetValue()
+        # # 编号
+        # self.MedicalNumberTextCtrl1.GetValue()
+        # # 联系方式
+        # self.PhoneTextCtrl1.GetValue()
+        # # 地址
+        # self.HomeTextCtrl1.GetValue()
+        # # 性别
+        # self.GenderTextCtrl1.GetValue()
+        # # 年龄
+        # self.YearOldTextCtrl1.GetValue()
+        # # 工作
+        # self.JobTextCtrl1.GetValue()
+        # # 家族病史
+        # self.FamilyMedicalHistoryTextCtrl1.GetValue()
+        # # 过敏史
+        # self.AllergyTextCtrl1.GetValue()
+        # # 个人病史
+        # self.PersonalMedicalHistoryTextCtrl.GetValue()
+        global res
+        global userdata
+        res = '-1'
+        cs = ClientSend('add', 'unumber=' + userdata['unumber'] + '&pname=' + self.UserNameTextCtrl1.GetValue() + '&pnumber=' + self.MedicalNumberTextCtrl1.GetValue() +'&gender=' + self.GenderTextCtrl1.GetValue() +'&yearold=' + self.YearOldTextCtrl1.GetValue() +'&home=' + self.HomeTextCtrl1.GetValue() +'&job=' + self.JobTextCtrl1.GetValue() +'&phone=' + self.PhoneTextCtrl1.GetValue() +'&allergy=' + self.AllergyTextCtrl1.GetValue() +'&family_medical_history=' + self.FamilyMedicalHistoryTextCtrl1.GetValue() +'&personal_medical_history=' + self.PersonalMedicalHistoryTextCtrl.GetValue())
+        del cs
+        cv = ClientRecv()
+        del cv
+        if res != '-1':
+            wx.MessageBox('增加成功！')
+
+    def OnClear(self,e):
+        self.UserNameTextCtrl1.SetValue('')
+        # 编号
+        self.MedicalNumberTextCtrl1.SetValue('')
+        # 联系方式
+        self.PhoneTextCtrl1.SetValue('')
+        # 地址
+        self.HomeTextCtrl1.SetValue('')
+        # 性别
+        self.GenderTextCtrl1.SetValue('')
+        # 年龄
+        self.YearOldTextCtrl1.SetValue('')
+        # 工作
+        self.JobTextCtrl1.SetValue('')
+        # 家族病史
+        self.FamilyMedicalHistoryTextCtrl1.SetValue('')
+        # 过敏史
+        self.AllergyTextCtrl1.SetValue('')
+        # 个人病史
+        self.PersonalMedicalHistoryTextCtrl1.SetValue('')
 
 
     # 创建 体温 页面
@@ -621,46 +785,6 @@ class DoctorFrame(wx.Frame):
 
         self.panel.SetSizerAndFit(sizer)
         self.SetTitle('医生 — 查看患者心电信息')
-
-    # 创建 警报 页面
-    def CreateAlarmPanel(self):
-        # print('alarm')
-        # 只有一个panel，动态删除添加（效率较低
-        self.panel.Destroy()
-        self.panel = panel = wx.Panel(self, -1)
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        wx.BoxSizer(wx.HORIZONTAL)
-
-        sizer = wx.GridBagSizer(0, 30)
-
-        SendLabel = wx.StaticText(panel, label="发送信息：")
-        SendTextCtrl = wx.TextCtrl(panel, size=(300, 70), style=wx.TE_MULTILINE)
-
-        RecvLabel = wx.StaticText(self.panel, label="回馈信息：")
-        RecvTextCtrl = wx.TextCtrl(
-            panel, size=(300, 70), style=wx.TE_MULTILINE)
-
-        NoteLabel = wx.StaticText(self.panel, label="备注信息：")
-        NoteTextCtrl = wx.TextCtrl(panel, size=(300, 70), style=wx.TE_MULTILINE)
-
-        SaveBtn = wx.Button(panel, label="保存")
-        # SaveBtn.Bind(wx.EVT_BUTTON, self.OnRegister)
-
-
-        sizer.Add(SendLabel, pos=(1, 4), flag=wx.ALL | wx.CENTER, border=5)
-        sizer.Add(SendTextCtrl, pos=(1, 5),flag=wx.ALL | wx.CENTER, border=5)
-
-        sizer.Add(RecvLabel, pos=(2, 4), flag=wx.ALL, border=5)
-        sizer.Add(RecvTextCtrl, pos=(2, 5), flag=wx.ALL | wx.CENTER, border=5)
-
-        sizer.Add(NoteLabel, pos=(3, 4), flag=wx.ALL, border=5)
-        sizer.Add(NoteTextCtrl, pos=(3, 5), flag=wx.ALL | wx.CENTER, border=5)
-
-        sizer.Add(SaveBtn, pos=(4, 6), flag=wx.EXPAND | wx.LEFT, border=5)
-
-        panel.SetSizerAndFit(sizer)
-        self.SetTitle('医生 — 警报信息更改')
-        self.Show()
 
     # 退出程序
     def OnQuit(self, e):
