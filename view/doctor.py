@@ -27,8 +27,13 @@ class DoctorFrame(wx.Frame):
             parent, title=title, size=(800, 400))
         global userdata
         userdata = user
-        # 用户 全局状态
-        print(userdata)
+        userdata['temperature'] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        userdata['pulse'] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        userdata['heart'] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        userdata['year'] = 0
+        userdata['month'] = 0
+        userdata['day'] = 0
+
         self.InitUI()
         self.Centre()
 
@@ -409,10 +414,11 @@ class DoctorFrame(wx.Frame):
 
         self.grid = grid = table.Grid(panel, -1)
 
-        grid.CreateGrid(15, 8)
+        grid.CreateGrid(15, 12)
 
         for i in range(15):
             grid.SetReadOnly(i, 0, True)
+            grid.SetReadOnly(i, 1, True)
 
         # grid.SetRowSize(0, 00)
         grid.SetColSize(0, 100)
@@ -421,22 +427,39 @@ class DoctorFrame(wx.Frame):
         grid.SetColSize(7, 100)
 
         grid.SetColLabelValue(0, '病历编号')
-        grid.SetColLabelValue(1, '姓名')
-        grid.SetColLabelValue(2, '性别')
-        grid.SetColLabelValue(3, '年龄')
-        grid.SetColLabelValue(4, '职业')
+        grid.SetColLabelValue(1, '主治医师编号')
+        grid.SetColLabelValue(2, '姓名')
+        grid.SetColLabelValue(3, '性别')
+        grid.SetColLabelValue(4, '年龄')
         grid.SetColLabelValue(5, '联系方式')
-        grid.SetColLabelValue(6, '过敏史')
-        grid.SetColLabelValue(7, '家族病史')
-
-        # !病患数据填充数组，请求所有数据
-
-        data = [['0908721','老毕','男','45','混子','17864534243','无','神经病']]
-        for i in range(1):
-            for j in range(8):
-                grid.SetCellValue(i, j, data[i][j])
-
+        grid.SetColLabelValue(6, '家庭住址')
+        grid.SetColLabelValue(7, '职业')
+        grid.SetColLabelValue(8, '过敏史')
+        grid.SetColLabelValue(9, '家族病史')
+        grid.SetColLabelValue(10, '个人病史')
+        grid.SetColLabelValue(11, '体检记录')
         # grid.ShowScrollbars(wx.SHOW_SB, wx.SHOW_SB_DEFAULT)
+
+        global res
+        global userdata
+        res = '-1'
+        cs = ClientSend('all', 'unumber=' + userdata['unumber'])
+        del cs
+        cv = ClientRecv()
+        del cv
+        if res != '-1':
+            data = []
+            origin = res.strip('[(').strip(')]').replace(')','').replace('(','').replace("'","").replace(" ","").split(',')
+ 
+            # data = [['0908721','老毕','男','45','混子','17864534243','无','神经病']]
+            # print(origin,data)
+
+            origindata = numpy.array(origin)  # x是一维数组
+            data = origindata.reshape((int(len(origin)/12), 12))
+  
+            for i in range(int(len(origin)/12)):
+                for j in range(12):
+                    self.grid.SetCellValue(i, j, data[i][j])
 
 
         nm = wx.StaticBox(panel, -1, '')
@@ -497,9 +520,19 @@ class DoctorFrame(wx.Frame):
         else:
             wx.MessageBox('删除失败！')
 
-    # the last 修改
+    # !the last 修改
     def OnChange(self,e):
-        self.grid.SelectRow(e.GetRow())
+        global row
+        global res
+        res = '-1'
+        cs = ClientSend('update', 'unumber=' + self.grid.GetCellValue(row,0) + '&name=' + self.grid.GetCellValue(row, 2) + '&gender=' + self.grid.GetCellValue(row, 3) +'&yearold=' + self.grid.GetCellValue(row, 4) +'&job=' + self.grid.GetCellValue(row, 7) +'&phone=' + self.grid.GetCellValue(row, 5) +'&allergy=' + self.grid.GetCellValue(row, 8) +'&family=' + self.grid.GetCellValue(row, 9))
+        del cs
+        cv = ClientRecv()
+        del cv
+        if res != '-1':
+            wx.MessageBox('修改成功！')
+        else:
+            wx.MessageBox('修改失败！')
 
     # 创建 添加人员 页面
     def CreateAddPanel(self):
@@ -671,119 +704,232 @@ class DoctorFrame(wx.Frame):
 
     # 创建 体温 页面
     def CreateTemperaturePanel(self):
+        global userdata
         self.panel.Destroy()
 
-        self.panel =panel= wx.Panel(self, -1)
+        self.panel = panel = wx.Panel(self, -1)
 
-        YearChoices = [u"2018年", u"2019年"]
-        YearChoiceBox = wx.Choice(panel, wx.ID_ANY, pos=(682, 150), choices=YearChoices)
-        YearChoiceBox.SetSelection(0)
+        self.YearChoices = YearChoices = [u"2019年", u"2018年"]
+        self.YearChoiceBox = YearChoiceBox = wx.Choice(
+            panel, wx.ID_ANY, pos=(682, 150), choices=YearChoices)
+        YearChoiceBox.SetSelection(userdata['year'])
 
-        MonthChoices = [u"1月", u"2月", u"3月", u"4月", u"5月", u"6月",
-                        u"7月", u"8月", u"9月", u"10月", u"11月", u"12月"]
-        MonthChoiceBox = wx.Choice(
+        self.MonthChoices = MonthChoices = [u"01月", u"02月", u"03月", u"04月", u"05月", u"06月",
+                                            u"07月", u"08月", u"09月", u"10月", u"11月", u"12月"]
+        self.MonthChoiceBox = MonthChoiceBox = wx.Choice(
             panel, wx.ID_ANY, pos=(682, 200), choices=MonthChoices)
-        MonthChoiceBox.SetSelection(0)
+        MonthChoiceBox.SetSelection(userdata['month'])
 
-        DayChoices = [
-            u"1日", u"2日", u"3日", u"4日", u"5日",
-            u"6日", u"7日", u"8日", u"9日", u"10日",
+        self.DayChoices = DayChoices = [
+            u"01日", u"02日", u"03日", u"04日", u"05日",
+            u"06日", u"07日", u"08日", u"09日", u"10日",
             u"11日", u"12日", u"13日", u"14日", u"15日",
             u"16日", u"17日", u"18日", u"19日", u"20日",
             u"21日", u"22日", u"23日", u"24日", u"25日",
             u"26日", u"27日", u"28日", u"29日", u"30日", u"31日"]
-        DayChoiceBox = wx.Choice(panel, wx.ID_ANY, pos=(682, 250), choices=DayChoices)
-        DayChoiceBox.SetSelection(0)
+        self.DayChoiceBox = DayChoiceBox = wx.Choice(
+            panel, wx.ID_ANY, pos=(682, 250), choices=DayChoices)
+        DayChoiceBox.SetSelection(userdata['day'])
 
-        NumberLabel = wx.StaticText(panel,  wx.ID_ANY, pos=(682, 80), label="病历号:")
+        NumberLabel = wx.StaticText(
+            panel,  wx.ID_ANY, pos=(682, 80), label="病历号:")
 
         self.NumberTextCtrl = NumberTextCtrl = wx.TextCtrl(
             panel, wx.ID_ANY, pos=(682, 100),)
 
-        SubmitBtn = wx.Button(panel, label="确定",pos=(682,300))
+        SubmitBtn = wx.Button(panel, label="确定", pos=(682, 300))
+
         SubmitBtn.Bind(
             wx.EVT_BUTTON, lambda event: self.CallRenderGraph(
-                event, [30, 36.5, 37.5, 38, 37, 37.5, 37, 37.5, 37.5, 37.5]))
-        # 临时数据，点击重新渲染=
-        self.ChangeData([36, 36.5, 37.5, 38, 37, 37.5, 37, 37.5, 37.5, 37.5])
-        # sum = 0
-        # for s in scores:
-        #     sum += s
-        # average = sum / len(scores)
+                event, 'temperature'))
 
-        # t_score = numpy.arange(1, len(scores) + 1, 1)
-        # s_score = numpy.array(scores)
+        self.NumberTextCtrl.SetValue('p1')
+        self.ChangeData(userdata['temperature'], 'temperature')
 
-        # self.figure_score = Figure()
-        # self.figure_score.set_figheight(3.8)
-        # self.figure_score.set_figwidth(6.8)
-        # self.axes_score = self.figure_score.add_subplot(111)
+        # p1|d1|2019-05-20|37.5|37.6|37.7|37.8|37.9|38.5|38.4|38|37.5|37.3|37|37.5
+        self.SetTitle("患者 - 查看患者体温信息")
 
-        # self.axes_score.plot(t_score, s_score, 'ro', t_score, s_score, 'k')
-        # self.axes_score.axhline(y=average, color='r')
-        # self.axes_score.set_title(u'Temperature')
-        # self.axes_score.grid(True)
-        # self.axes_score.set_xlabel('time')
-        # self.axes_score.set_ylabel('temperature')
-        # FigureCanvas(self.panel, -1, self.figure_score)
-        # self.panel.Fit()
-        self.SetTitle("医生 - 查看患者体温信息")
+    def CallRenderGraph(self, e, graphtype):
+        # print(type)
+        self.ChangeData(None, graphtype)
 
-        # RegisterBtn.Bind(wx.EVT_BUTTON, self.OnRegister)
-    def CallRenderGraph(self,e,data):
-        self.ChangeData(data)
+    #! 抽离可在三个界面中使用
+    def ChangeData(self, data, graphtype):
+        if data != None:
+            # global userdata
+            scores = data
+            sum = 0
+            for s in scores:
+                sum += s
+            average = sum / len(scores)
 
-    def ChangeData(self,data):
-        # !请求数据
-        scores = data
-        sum = 0
-        for s in scores:
-            sum += s
-        average = sum / len(scores)
+            t_score = numpy.arange(1, len(scores) + 1, 1)
+            s_score = numpy.array(scores)
 
-        t_score = numpy.arange(1, len(scores) + 1, 1)
-        s_score = numpy.array(scores)
+            self.figure_score = Figure()
+            self.figure_score.set_figheight(3.8)
+            self.figure_score.set_figwidth(6.8)
+            self.axes_score = self.figure_score.add_subplot(111)
 
-        self.figure_score = Figure()
-        self.figure_score.set_figheight(3.8)
-        self.figure_score.set_figwidth(6.8)
-        self.axes_score = self.figure_score.add_subplot(111)
+            self.axes_score.plot(t_score, s_score, 'ro', t_score, s_score, 'k')
+            self.axes_score.axhline(y=average, color='r')
+            self.axes_score.set_title(graphtype)
+            self.axes_score.grid(True)
+            self.axes_score.set_xlabel('time')
+            self.axes_score.set_ylabel('')
+            FigureCanvas(self.panel, -1, self.figure_score)
+            self.panel.Fit()
+        else:
+            global res
+            global userdata
+            res = '-1'
+            # userdata['unumber']
+            usernumber = self.NumberTextCtrl.GetValue()
+            if usernumber == '':
+                wx.MessageBox('不能为空！')
+                return
+            year = self.YearChoices[self.YearChoiceBox.GetSelection()]
+            month = self.MonthChoices[self.MonthChoiceBox.GetSelection()]
+            day = self.DayChoices[self.DayChoiceBox.GetSelection()]
+            # year,month,day
+            date = year[0:-1] + '-' + month[0:-1] + '-' + day[0:-1]
+            # print(date)
+            # 患者的从自己的编号汇总获取，医生自己输入
+            cs = ClientSend(graphtype, 'unumber=' +
+                            usernumber + '&date=' + date)
+            del cs
+            cv = ClientRecv()
+            del cv
+            # print(res)
+            if res != 'None':
+                resarr = res.split(',')
+                # print(resarr)
+                data1 = []
+                for i in range(12):
+                    data1.append(
+                        float(resarr[i+3].replace(' ', '').replace(')', '')))
+                scores = data1
+                # -----------------------
 
-        self.axes_score.plot(t_score, s_score, 'ro', t_score, s_score, 'k')
-        self.axes_score.axhline(y=average, color='r')
-        self.axes_score.set_title(u'Temperature')
-        self.axes_score.grid(True)
-        self.axes_score.set_xlabel('t')
-        self.axes_score.set_ylabel('temperature')
-        FigureCanvas(self.panel, -1, self.figure_score)
-        self.panel.Fit()
+                userdata[graphtype] = data1
+                userdata['year'] = self.YearChoiceBox.GetSelection()
+                userdata['month'] = self.MonthChoiceBox.GetSelection()
+                userdata['day'] = self.DayChoiceBox.GetSelection()
+
+                # ----------------------
+                sum = 0
+                for s in scores:
+                    sum += s
+                average = sum / len(scores)
+
+                t_score = numpy.arange(1, len(scores) + 1, 1)
+                s_score = numpy.array(scores)
+
+                self.figure_score = Figure()
+                self.figure_score.set_figheight(3.8)
+                self.figure_score.set_figwidth(6.8)
+                self.axes_score = self.figure_score.add_subplot(111)
+
+                self.axes_score.plot(
+                    t_score, s_score, 'ro', t_score, s_score, 'k')
+                self.axes_score.axhline(y=average, color='r')
+                self.axes_score.set_title(u'')
+                self.axes_score.grid(True)
+                self.axes_score.set_xlabel('time')
+                self.axes_score.set_ylabel('')
+                FigureCanvas(self.panel, -1, self.figure_score)
+                self.panel.Fit()
+            else:
+                wx.MessageBox('您选择的日期没有数据！')
+
 
     # 创建 脉搏 页面
+
     def CreatePulsePanel(self):
-        # print('alarm')
-        # 只有一个panel，动态删除添加（效率较低
+        global userdata
         self.panel.Destroy()
-        self.panel = wx.Panel(self, -1)
-        sizer = wx.GridBagSizer(0, 30)
 
-        UserNameLabel = wx.StaticText(self.panel, label="Pulse")
-        sizer.Add(UserNameLabel, pos=(0, 0), flag=wx.ALL, border=5)
+        self.panel = panel = wx.Panel(self, -1)
 
-        self.panel.SetSizerAndFit(sizer)
+        self.YearChoices = YearChoices = [u"2019年", u"2018年"]
+        self.YearChoiceBox = YearChoiceBox = wx.Choice(
+            panel, wx.ID_ANY, pos=(682, 150), choices=YearChoices)
+        YearChoiceBox.SetSelection(userdata['year'])
+
+        self.MonthChoices = MonthChoices = [u"01月", u"02月", u"03月", u"04月", u"05月", u"06月",
+                                            u"07月", u"08月", u"09月", u"10月", u"11月", u"12月"]
+        self.MonthChoiceBox = MonthChoiceBox = wx.Choice(
+            panel, wx.ID_ANY, pos=(682, 200), choices=MonthChoices)
+        MonthChoiceBox.SetSelection(userdata['month'])
+
+        self.DayChoices = DayChoices = [
+            u"01日", u"02日", u"03日", u"04日", u"05日",
+            u"06日", u"07日", u"08日", u"09日", u"10日",
+            u"11日", u"12日", u"13日", u"14日", u"15日",
+            u"16日", u"17日", u"18日", u"19日", u"20日",
+            u"21日", u"22日", u"23日", u"24日", u"25日",
+            u"26日", u"27日", u"28日", u"29日", u"30日", u"31日"]
+        self.DayChoiceBox = DayChoiceBox = wx.Choice(
+            panel, wx.ID_ANY, pos=(682, 250), choices=DayChoices)
+        DayChoiceBox.SetSelection(userdata['day'])
+
+        NumberLabel = wx.StaticText(
+            panel,  wx.ID_ANY, pos=(682, 80), label="病历号:")
+
+        self.NumberTextCtrl = NumberTextCtrl = wx.TextCtrl(
+            panel, wx.ID_ANY, pos=(682, 100),)
+
+        self.NumberTextCtrl.SetValue('p1')
+
+        SubmitBtn = wx.Button(panel, label="确定", pos=(682, 300))
+        SubmitBtn.Bind(
+            wx.EVT_BUTTON, lambda event: self.CallRenderGraph(
+                event, 'pulse'))
+        self.ChangeData(userdata['pulse'], 'pulse')
+
         self.SetTitle('医生 — 查看患者脉搏信息')
 
     # 创建 心电 页面
     def CreateHeartPanel(self):
-        # print('alarm')
-        # 只有一个panel，动态删除添加（效率较低
+        global userdata
         self.panel.Destroy()
-        self.panel = wx.Panel(self, -1)
-        sizer = wx.GridBagSizer(0, 30)
 
-        UserNameLabel = wx.StaticText(self.panel, label="Heart")
-        sizer.Add(UserNameLabel, pos=(0, 0), flag=wx.ALL, border=5)
+        self.panel = panel = wx.Panel(self, -1)
 
-        self.panel.SetSizerAndFit(sizer)
+        self.YearChoices = YearChoices = [u"2019年", u"2018年"]
+        self.YearChoiceBox = YearChoiceBox = wx.Choice(
+            panel, wx.ID_ANY, pos=(682, 150), choices=YearChoices)
+        YearChoiceBox.SetSelection(userdata['year'])
+
+        self.MonthChoices = MonthChoices = [u"01月", u"02月", u"03月", u"04月", u"05月", u"06月",
+                                            u"07月", u"08月", u"09月", u"10月", u"11月", u"12月"]
+        self.MonthChoiceBox = MonthChoiceBox = wx.Choice(
+            panel, wx.ID_ANY, pos=(682, 200), choices=MonthChoices)
+        MonthChoiceBox.SetSelection(userdata['month'])
+
+        self.DayChoices = DayChoices = [
+            u"01日", u"02日", u"03日", u"04日", u"05日",
+            u"06日", u"07日", u"08日", u"09日", u"10日",
+            u"11日", u"12日", u"13日", u"14日", u"15日",
+            u"16日", u"17日", u"18日", u"19日", u"20日",
+            u"21日", u"22日", u"23日", u"24日", u"25日",
+            u"26日", u"27日", u"28日", u"29日", u"30日", u"31日"]
+        self.DayChoiceBox = DayChoiceBox = wx.Choice(
+            panel, wx.ID_ANY, pos=(682, 250), choices=DayChoices)
+        DayChoiceBox.SetSelection(userdata['day'])
+
+        NumberLabel = wx.StaticText(
+            panel,  wx.ID_ANY, pos=(682, 80), label="病历号:")
+
+        self.NumberTextCtrl = NumberTextCtrl = wx.TextCtrl(
+            panel, wx.ID_ANY, pos=(682, 100),)
+        self.NumberTextCtrl.SetValue('p1')
+        SubmitBtn = wx.Button(panel, label="确定", pos=(682, 300))
+        SubmitBtn.Bind(
+            wx.EVT_BUTTON, lambda event: self.CallRenderGraph(
+                event, 'heart'))
+        self.ChangeData(userdata['heart'], 'heart')
+
         self.SetTitle('医生 — 查看患者心电信息')
 
     # 退出程序

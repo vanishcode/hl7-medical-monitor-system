@@ -418,7 +418,7 @@ class PatientFrame(wx.Frame):
 
             self.axes_score.plot(t_score, s_score, 'ro', t_score, s_score, 'k')
             self.axes_score.axhline(y=average, color='r')
-            self.axes_score.set_title(u'')
+            self.axes_score.set_title(graphtype)
             self.axes_score.grid(True)
             self.axes_score.set_xlabel('time')
             self.axes_score.set_ylabel('')
@@ -435,16 +435,16 @@ class PatientFrame(wx.Frame):
             day = self.DayChoices[self.DayChoiceBox.GetSelection()]
             # year,month,day
             date = year[0:-1] + '-' + month[0:-1] + '-' + day[0:-1]
-            print(date)
+            # print(date)
             # 患者的从自己的编号汇总获取，医生自己输入
             cs = ClientSend(graphtype, 'unumber=' + userdata['unumber'] + '&date=' + date)
             del cs
             cv = ClientRecv()
             del cv
-            print(res)
+            # print(res)
             if res != 'None':
                 resarr = res.split(',')
-                print(resarr)
+                # print(resarr)
                 data1 = []
                 for i in range(12):
                     data1.append(
