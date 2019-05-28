@@ -605,6 +605,12 @@ class DoctorFrame(wx.Frame):
         sizer.Add(JobTextCtrl1, pos=(3, 1), span=(1, 3),
                   flag=wx.ALL | wx.EXPAND, border=5)
 
+        YearOldLabel = wx.StaticText(panel, label="年龄:")
+        sizer.Add(YearOldLabel, pos=(3, 4), flag=wx.ALL | wx.EXPAND, border=5)
+
+        self.YearOldTextCtrl1 = YearOldTextCtrl1 = wx.TextCtrl(panel)
+        sizer.Add(YearOldTextCtrl1, pos=(3, 5), span=(1, 3),
+                  flag=wx.ALL | wx.EXPAND, border=5)
         # ---------------------------第四行-------------------------------
         FamilyMedicalHistoryLabel = wx.StaticText(panel, label="家族病史:")
         sizer.Add(FamilyMedicalHistoryLabel, pos=(5, 0),
@@ -650,6 +656,10 @@ class DoctorFrame(wx.Frame):
         self.SetTitle("医生 - 添加个人信息")
 
     def OnAdd(self,e):
+        global res
+        global userdata
+        name = self.UserNameTextCtrl1.GetValue()
+        wx.MessageBox(name)
         # # 用户姓名
         # self.UserNameTextCtrl1.GetValue()
         # # 编号
@@ -670,10 +680,8 @@ class DoctorFrame(wx.Frame):
         # self.AllergyTextCtrl1.GetValue()
         # # 个人病史
         # self.PersonalMedicalHistoryTextCtrl.GetValue()
-        global res
-        global userdata
         res = '-1'
-        cs = ClientSend('add', 'unumber=' + userdata['unumber'] + '&pname=' + self.UserNameTextCtrl1.GetValue() + '&pnumber=' + self.MedicalNumberTextCtrl1.GetValue() +'&gender=' + self.GenderTextCtrl1.GetValue() +'&yearold=' + self.YearOldTextCtrl1.GetValue() +'&home=' + self.HomeTextCtrl1.GetValue() +'&job=' + self.JobTextCtrl1.GetValue() +'&phone=' + self.PhoneTextCtrl1.GetValue() +'&allergy=' + self.AllergyTextCtrl1.GetValue() +'&family_medical_history=' + self.FamilyMedicalHistoryTextCtrl1.GetValue() +'&personal_medical_history=' + self.PersonalMedicalHistoryTextCtrl.GetValue())
+        cs = ClientSend('add', 'unumber=' + userdata['unumber'] + '&pname=' + self.UserNameTextCtrl1.GetValue() + '&pnumber=' + self.MedicalNumberTextCtrl1.GetValue() +'&gender=' + self.GenderTextCtrl1.GetValue() +'&yearold=' + self.YearOldTextCtrl1.GetValue() +'&home=' + self.HomeTextCtrl1.GetValue() +'&job=' + self.JobTextCtrl1.GetValue() +'&phone=' + self.PhoneTextCtrl1.GetValue() +'&allergy=' + self.AllergyTextCtrl1.GetValue() +'&family_medical_history=' + self.FamilyMedicalHistoryTextCtrl1.GetValue() +'&personal_medical_history=' + self.PersonalMedicalHistoryTextCtrl1.GetValue())
         del cs
         cv = ClientRecv()
         del cv

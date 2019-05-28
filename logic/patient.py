@@ -28,6 +28,8 @@ def getdata(self, unumber):
 
 
 def insertdata(self, unumber, data):
+
+    print(data)
     db_file = os.path.join(os.path.dirname(__file__), '../data/data.db')
 
     conn = sqlite3.connect(db_file)
