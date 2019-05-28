@@ -699,7 +699,7 @@ class DoctorFrame(wx.Frame):
         # 性别
         self.GenderTextCtrl1.SetValue('')
         # 年龄
-        self.YearOldTextCtrl1.SetValue('')
+        # self.YearOldTextCtrl1.SetValue('')
         # 工作
         self.JobTextCtrl1.SetValue('')
         # 家族病史
